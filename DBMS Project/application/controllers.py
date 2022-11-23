@@ -3,6 +3,7 @@ from flask import current_app as app
 import jwt
 from  functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_cors import cross_origin
 from datetime import datetime
 from .database import *
 from .models import *
@@ -64,9 +65,18 @@ def token_required(f):
         return f(current_user,role,*args,**kwargs)
     return decorated
 
+@app.route('/complaints', methods=["GET"])
+@cross_origin(supports_credentials=True,headers=['Content-Type'])
+@token_required
+def get_complaints(currrent_user,role):
+    complaints = Complaints.query.filter_by(User_id = currrent_user["id"]).all()
+    ans=[]
+    for complaint in complaints:
+        ans.append(getComplaint(complaint))
 
 
 @app.route('/user/current', methods=["GET"])
+@cross_origin(supports_credentials=True,headers=['Content-Type'])
 @token_required
 def get_current_user(current_user,role):
     if role == "section head":
@@ -78,6 +88,7 @@ def get_current_user(current_user,role):
 
 
 @app.route("/signup",methods=["POST"])
+@cross_origin(supports_credentials=True,headers=['Content-Type'])
 def signUp():
     try:
         data = request.json
@@ -89,7 +100,7 @@ def signUp():
                 Designation=data["designation"],
                 Email=data["email"],
                 Password=pwd,
-                Committee_Head_id= 0)
+                Committee_Head_id= 1)
         else:
             new_user = User(
                 Name=data["name"],
@@ -107,6 +118,7 @@ def signUp():
 
 
 @app.route("/login",methods=["POST"])
+@cross_origin(supports_credentials=True,headers=['Content-Type'])
 def login():
     try:
         data = request.json
@@ -138,19 +150,8 @@ def login():
         return jsonify({"Response" : "Login Failed"}),400
 
 
-
 @app.route("/test")
+@cross_origin(supports_credentials=True,headers=['Content-Type'])
 def test():
-    pwd = generate_password_hash("password",method='sha256')
-        
-    new_user = Committee_Head(
-        Name="Test",
-        Type="Test",
-        Email="Test@gmail.com",
-        Password=pwd
-    )
-        
-    db.session.add(new_user)
-    db.session.commit()
-
-    return jsonify({"Response" : "Admin Created Successfully"}),200
+    user = Committee_Head.query.filter_by(Email = "Test@gmail.com").first()
+    return getCommitteeHead(user)
