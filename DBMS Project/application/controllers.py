@@ -65,16 +65,6 @@ def token_required(f):
         return f(current_user,role,*args,**kwargs)
     return decorated
 
-@app.route('/complaints', methods=["GET"])
-@cross_origin(supports_credentials=True,headers=['Content-Type'])
-@token_required
-def get_complaints(currrent_user,role):
-    complaints = Complaints.query.filter_by(User_id = currrent_user["id"]).all()
-    ans=[]
-    for complaint in complaints:
-        ans.append(getComplaint(complaint))
-
-
 @app.route('/user/current', methods=["GET"])
 @cross_origin(supports_credentials=True,headers=['Content-Type'])
 @token_required
