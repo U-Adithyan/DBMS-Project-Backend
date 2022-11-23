@@ -12,7 +12,7 @@ def create_app():
     print("Starting Development")
     app.config.from_object(DevelopConfig)
     CORS(app)
-    cors=CORS(app,resources={r"/*": {"origins": "*"}})
+    cors=CORS(app,resources={r"/*": {"origins": "*"}}, support_credentials=True)
     db.init_app(app)
     app.app_context().push()
     return app
