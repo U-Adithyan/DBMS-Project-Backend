@@ -196,7 +196,6 @@ def get_current_user(current_user,role):
 @app.route("/signup",methods=["POST"])
 @cross_origin(supports_credentials=True,headers=['Content-Type'])
 def signUp():
-    try:
         data = request.json
         pwd = generate_password_hash(data["password"],method='sha256')
         if data["role"] == "section head":
@@ -218,8 +217,6 @@ def signUp():
         db.session.commit()
 
         return jsonify({"Response" : "User Created Successfully"}),200
-    except:
-        return jsonify({"Response" : "User Creation Failed"}),400
 
 @app.route("/login",methods=["POST"])
 @cross_origin(supports_credentials=True,headers=['Content-Type'])
@@ -233,6 +230,9 @@ def login():
             user = Committee_Head.query.filter_by(Email = data["email"]).first()
         else:
             user = User.query.filter_by(Email = data["email"]).first()
+        
+        if user is None:
+            return jsonify({"Response" : "User does not exist"}),404
 
         if data["role"] == "section head":
             id = user.Section_id
@@ -240,9 +240,6 @@ def login():
             id = user.Committee_Head_id
         else:
             id = user.User_id
-
-        if user is None:
-            return jsonify({"Response" : "User does not exist"}),404
         
         if check_password_hash(user.Password, data["password"]):
             token=jwt.encode({"Role":data['role'],"ID":id},app.config['SECRET_KEY'])
